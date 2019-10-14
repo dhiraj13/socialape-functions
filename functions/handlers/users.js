@@ -5,7 +5,11 @@ const config = require('../util/config');
 const firebase = require('firebase');
 firebase.initializeApp(config);
 
-const { validateSignupData, validateLoginData, reduceUserDetails } = require('../util/validators');
+const {
+    validateSignupData,
+    validateLoginData,
+    reduceUserDetails
+} = require('../util/validators');
 
 // Sign users up
 exports.signup = (req, res) => {
@@ -23,8 +27,7 @@ exports.signup = (req, res) => {
     const noImg = 'no-img.png';
 
     let token, userId;
-    db
-        .doc(`/users/${newUser.handle}`)
+    db.doc(`/users/${newUser.handle}`)
         .get()
         .then(doc => {
             if (doc.exists) {
@@ -50,9 +53,7 @@ exports.signup = (req, res) => {
                 }/o/${noImg}?alt=media`,
                 userId
             };
-            return db
-                .doc(`/users/${newUser.handle}`)
-                .set(userCredentials);
+            return db.doc(`/users/${newUser.handle}`).set(userCredentials);
         })
         .then(() => {
             return res.status(201).json({ token });
@@ -62,11 +63,10 @@ exports.signup = (req, res) => {
             if (err.code === 'auth/email-already-in-use') {
                 return res.status(400).json({ email: 'Email is already in use' })
             } else {
-                return res.status(500).json({ error: err.code });
+                return res.status(500).json({ general: 'Something went wrong, please try again' });
             }
         });
 };
-
 // Log user in
 exports.login = (req, res) => {
     const user = {
@@ -89,11 +89,11 @@ exports.login = (req, res) => {
         })
         .catch(err => {
             console.error(err);
-            if (err.code === 'auth/wrong-password') {
-                return res
-                    .status(403)
-                    .json({ general: 'Wrong credentials, please try again' });
-            } else return res.status(500).json({ error: err.code });
+            // auth/wrong-password
+            // auth/user-not-found
+            return res
+                .status(403)
+                .json({ general: 'Wrong credentials, please try again' });
         });
 };
 
@@ -215,7 +215,7 @@ exports.uploadImage = (req, res) => {
         const imageExtension = filename.split('.')[filename.split('.').length - 1];
         // 8497937936.png
         imageFileName = `${Math.round(
-            Math.random()*1000000000
+            Math.random()*1000000000000
         ).toString()}.${imageExtension}`;
         const filepath = path.join(os.tmpdir(), imageFileName);
         imageToBeUploaded = { filepath, mimetype };
@@ -244,7 +244,7 @@ exports.uploadImage = (req, res) => {
         })
         .catch(err => {
             console.error(err);
-            return res.status(500).json({ error: err.code });
+            return res.status(500).json({ error: 'something went wrong' });
         });
     });
     busboy.end(req.rawBody);
